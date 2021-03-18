@@ -25,9 +25,10 @@ from .osnet import OSNet
 from .adamw import AdamW
 from .optimizer import convert_to_accum_optimizer
 from .optimizer import convert_to_lookahead_optimizer
+from tensorflow.keras.applications import InceptionV3
 
-
-IN_SHAPE = (224, 224, 3)  # shape of input image tensor
+#IN_SHAPE = (224, 224, 3)  # shape of input image tensor
+IN_SHAPE = (299, 299, 3)
 NUM_CLASSES = 1000        # number of output classes (1000 for ImageNet)
 
 
@@ -117,7 +118,8 @@ def get_lr_func(total_epochs, lr_sched='linear',
         if total_epochs == 1:
             return initial_lr
         else:
-            lr_decay = (final_lr / initial_lr) ** (1. / (total_epochs - 1))
+            #epoch = epoch + 4 ################### when 5th (terminal) epoch got interrupted
+            lr_decay = 0.94 #(final_lr / initial_lr) ** (1. / (total_epochs - 1))
             lr = initial_lr * (lr_decay ** epoch)
             print('Epoch %d, lr = %f' % (epoch+1, lr))
             return lr
@@ -166,6 +168,16 @@ def get_training_model(model_name, dropout_rate, optimizer, label_smoothing,
             model_name,
             compile=False,
             custom_objects={'AdamW': AdamW})
+    elif model_name == 'inception_v3':
+        model = InceptionV3(
+              include_top=True,
+              weights=None,
+              #input_tensor=None,
+              #input_shape=(224,224,3),
+              #pooling=None,
+              classes=1000,
+              #classifier_activation="softmax"
+               )
     else:
         # initialize the model from scratch
         model_class = {

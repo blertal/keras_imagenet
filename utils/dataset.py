@@ -32,12 +32,19 @@ def decode_jpeg(image_buffer, scope=None):
         # time.
         image = tf.image.decode_jpeg(image_buffer, channels=3)
 
+        ##image = 1 - image
+
         # After this point, all image pixels reside in [0,1)
         # until the very end, when they're rescaled to (-1, 1).
         # The various adjust_* ops all require this range for dtype
         # float.
         image = tf.image.convert_image_dtype(image, dtype=tf.float32)
-        return image
+
+
+#        image = 1 - image
+
+
+    return image
 
 
 def _parse_fn(example_serialized, is_training):
@@ -78,9 +85,23 @@ def _parse_fn(example_serialized, is_training):
     parsed = tf.parse_single_example(example_serialized, feature_map)
     image = decode_jpeg(parsed['image/encoded'])
     if config.DATA_AUGMENTATION:
-        image = preprocess_image(image, 224, 224, is_training=is_training)
+        image = preprocess_image(image, 299, 299, is_training=is_training)
     else:
-        image = resize_and_rescale_image(image, 224, 224)
+        image = resize_and_rescale_image(image, 299, 299)
+
+#    image = 1 - image
+
+
+    ##tf.print(image)
+    #arr = tf.keras.preprocessing.image.img_to_array(image)
+    #print(arr.shape)
+    
+    #with tf.Session() as sess:
+    #    tf.print(sess.run(image))
+            
+    #exit()
+    
+
     # The label in the tfrecords is 1~1000 (0 not used).
     # So I think the minus 1 (of class label) is needed below.
     label = tf.one_hot(parsed['image/class/label'] - 1, 1000, dtype=tf.float32)
@@ -91,10 +112,10 @@ def get_dataset(tfrecords_dir, subset, batch_size):
     """Read TFRecords files and turn them into a TFRecordDataset."""
     files = tf.matching_files(os.path.join(tfrecords_dir, '%s-*' % subset))
     shards = tf.data.Dataset.from_tensor_slices(files)
-    shards = shards.shuffle(tf.cast(tf.shape(files)[0], tf.int64))
+    #shards = shards.shuffle(tf.cast(tf.shape(files)[0], tf.int64))
     shards = shards.repeat()
     dataset = shards.interleave(tf.data.TFRecordDataset, cycle_length=4)
-    dataset = dataset.shuffle(buffer_size=8192)
+    #dataset = dataset.shuffle(buffer_size=8192)
     parser = partial(
         _parse_fn, is_training=True if subset == 'train' else False)
     dataset = dataset.apply(
@@ -103,4 +124,7 @@ def get_dataset(tfrecords_dir, subset, batch_size):
             batch_size=batch_size,
             num_parallel_calls=config.NUM_DATA_WORKERS))
     dataset = dataset.prefetch(batch_size)
+
+    #print(dataset)
+    #exit()
     return dataset
