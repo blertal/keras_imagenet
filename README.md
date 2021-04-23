@@ -1,3 +1,10 @@
+
+python3 generate_panda_imgs.py --dataset_dir /l/IMAGENET_ORIGINAL/train/imagenet_tfrecord --inv_model_file /l/keras_imagenet-master/saves/inception_v3-ckpt-030_orig.h5
+
+python3 evaluate_incv3_all.py --dataset_dir /l/IMAGENET_ORIGINAL/train/imagenet_tfrecord --inv_model_file /l/keras_imagenet-master/saves/inception_v3-ckpt-030_orig.h5
+
+
+
 keras_imagenet
 ==============
 

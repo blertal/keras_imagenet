@@ -88,7 +88,7 @@ def train(model_name, dropout_rate, optim_name, epsilon,
         validation_steps=50000 // batch_size,
         callbacks=[lrate, model_ckpt, tensorboard],
         # The following doesn't seem to help in terms of speed.
-        # use_multiprocessing=True, workers=4,
+         use_multiprocessing=True, workers=12,
         epochs=epochs)
 
     # training finished

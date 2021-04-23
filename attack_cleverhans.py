@@ -10,6 +10,8 @@ import numpy as np
 # CWL2 attack
 def get_CWL2_adversarial(targeted, xs, y_target, classifier, batch_size, cwl2_confidence):
 
+    #print(xs.shape, y_target.shape)
+    #exit()
     ATTACK_BATCH = batch_size
     samples_range  = int(xs.shape[0]/ATTACK_BATCH)
 
@@ -23,11 +25,13 @@ def get_CWL2_adversarial(targeted, xs, y_target, classifier, batch_size, cwl2_co
                    'batch_size':ATTACK_BATCH}
 
     if targeted:
-        attack_xs  = attack.generate_np(xs[:ATTACK_BATCH,:,:,:], y_target=y_target[:ATTACK_BATCH,:], **fgsm_params)
+        y_target = np.expand_dims(y_target, axis=1)
+
+        attack_xs  = attack.generate_np(xs[:ATTACK_BATCH,:,:,:], y_target=y_target[:ATTACK_BATCH], **fgsm_params)
         for ii in range(1,samples_range):
             print('iter', ii)
             new_attack_batch = attack.generate_np(xs[ii*ATTACK_BATCH:(ii+1)*ATTACK_BATCH,:,:,:], 
-                                                  y_target=y_target[ii*ATTACK_BATCH:(ii+1)*ATTACK_BATCH,:],
+                                                  y_target=y_target[ii*ATTACK_BATCH:(ii+1)*ATTACK_BATCH],
                                                   **fgsm_params)
             attack_xs = np.concatenate((attack_xs, new_attack_batch), axis=0)
     else:
@@ -54,9 +58,8 @@ def get_DeepFool_adversarial(targeted, xs, classifier, batch_size):
     fgsm_params = { 'overshoot':0.02, 'max_iter':50,
                     'nb_candidate':2, 'clip_min':-5,
                     'clip_max':5}
+    
     attack_xs  = attack.generate_np(xs[:ATTACK_BATCH,:,:,:], **fgsm_params)
-    #attack_xs  = attack.generate_np(np.reshape(xs[:ATTACK_BATCH,:,:,:],(1,224,224,3)), **fgsm_params)
-
     for ii in range(1,samples_range):
         print('ITER', ii)
         new_attack_batch = attack.generate_np(xs[ii*ATTACK_BATCH:(ii+1)*ATTACK_BATCH,:,:,:], **fgsm_params)

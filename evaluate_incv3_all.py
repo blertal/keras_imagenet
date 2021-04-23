@@ -77,7 +77,7 @@ def main():
     # InceptionV3
     inception_model = InceptionV3(include_top=True, weights='imagenet', classes=1000)
     inception_model.compile(
-        optimizer='sgd',
+            optimizer='sgd',
         loss='sparse_categorical_crossentropy',
         metrics=['accuracy'])
     ## ResNet
@@ -94,7 +94,7 @@ def main():
     sum2 = 0
     for images, labels in tfds.as_numpy(ds_validation):
 
-        if iteration < 0:
+        if iteration < 199:
             print('continuing')
             iteration += 1
             continue
@@ -103,10 +103,10 @@ def main():
 
         labels = np.argmax(labels, axis=1)
 
-        adv_imgs = run_attack(True, 'CarliniL2Method', inception_model, images, labels, batch_size=args.batch_size, dataset='cifar', fgsm_epsilon=0.3, cwl2_confidence=0)
+        #adv_imgs = run_attack(True, 'CarliniL2Method', inception_model, images, labels, batch_size=args.batch_size, dataset='cifar', fgsm_epsilon=0.3, cwl2_confidence=0)
         #adv_imgs = run_attack(False, 'DeepFool', inception_model, images, labels, batch_size=args.batch_size, dataset='cifar', fgsm_epsilon=0.3, cwl2_confidence=0)
-        #adv_imgs = run_attack(False, 'FastGradientMethod', inception_model, images, labels, batch_size=args.batch_size, dataset='cifar', fgsm_epsilon=0.1, cwl2_confidence=0)
-
+        adv_imgs = run_attack(False, 'FastGradientMethod', inception_model, images, labels, batch_size=args.batch_size, dataset='cifar', fgsm_epsilon=0.3, cwl2_confidence=0)
+        #adv_imgs = run_attack(False, 'ProjectedGradientDescent', inception_model, images, labels, batch_size=10, dataset='cifar', fgsm_epsilon=0.1, cwl2_confidence=0)
         ## VGG ################################################
 
         #img *= (2.0/255)  # normalize to: 0.0~2.0
@@ -232,79 +232,17 @@ def main():
 
 
         # Default ResNet accuracy
-#        print('Iteration', iteration)
-#        print('LABELS              :', labels)
-
-##        results = resnet_model.predict(x=resnet_imgs, verbose=0)
-##        results = np.argmax(results, axis=1)
-##        print('RESNET     default  :', results)
-#
-##        results = vgg_model.predict(x=vgg_imgs, verbose=0)
-##        results = np.argmax(results, axis=1)
-##        print('VGG        default  :', results)
-#
-#        results = inception_model.predict(x=inc_imgs, verbose=0)
-#        results = np.argmax(results, axis=1)
-#        print('Inception  default  :', results)
-#
-#        results = inv_model.predict(x=inv_imgs, verbose=0)
-#        results = np.argmax(results, axis=1)
-#        print('Inv-incep  default  :', results)
-#
-#        print('------------------------------------------------')
-#        
-##        results = resnet_model.predict(x=adv_resnet_imgs, verbose=0)
-##        results = np.argmax(results, axis=1)
-##        print('RESNET     adv      :', results)
-#
-##        results = vgg_model.predict(x=adv_vgg_imgs, verbose=0)
-##        results = np.argmax(results, axis=1)
-##        print('VGG        adv      :', results)
-#
-#        results = inception_model.predict(x=adv_inc_imgs, verbose=0)
-#        results = np.argmax(results, axis=1)
-#        print('Inception  adv      :', results)
-#
-#        results = inv_model.predict(x=adv_inv_imgs, verbose=0)
-#        results = np.argmax(results, axis=1)
-#        print('Inv-incep  adv      :', results)
-#
-#        print('=====================================================')
-
-
-
-        # Default ResNet accuracy
         _, results1 = resnet_model.evaluate(x=resnet_imgs, y=labels, verbose=0)
-        #print('RESNET     default  test loss, test acc:', results)
-
         _, results2 = vgg_model.evaluate(x=vgg_imgs, y=labels, verbose=0)
-        #print('VGG        default  test loss, test acc:', results)
-
         _, results3 = inception_model.evaluate(x=inc_imgs, y=labels, verbose=0)
-        #print('Inception  default  test loss, test acc:', results)
-
         _, results4 = inception_model.evaluate(x=flip_imgs, y=labels, verbose=0)
-        #print('Inception  default  test loss, test acc:', results)
-
         _, results5 = inv_model.evaluate(x=inv_imgs, y=labels, verbose=0)
-        #print('Inception  default  test loss, test acc:', results)
-
 #        print('-----------------------------------------------------')
-
         _, results6 = resnet_model.evaluate(x=adv_resnet_imgs, y=labels, verbose=0)
-#        print('RESNET     adv  test loss, test acc:', results)
-
         _, results7 = vgg_model.evaluate(x=adv_vgg_imgs, y=labels, verbose=0)
-#        print('VGG        adv  test loss, test acc:', results)
-
         _, results8 = inception_model.evaluate(x=adv_inc_imgs, y=labels, verbose=0)
-        #print('Inception  adv  test loss, test acc:', results)
-
         _, results9 = inception_model.evaluate(x=adv_flip_imgs, y=labels, verbose=0)
-        #print('Inception  adv  test loss, test acc:', results)
-
         _, results10 = inv_model.evaluate(x=adv_inv_imgs, y=labels, verbose=0)
-        #print('Inception  adv  test loss, test acc:', results)
 
         print(iteration)
         print(results1, results6)
@@ -313,8 +251,9 @@ def main():
         print(results4, results9)
         print(results5, results10)
 
-        #with open("output_cw40_100.txt", "a") as myfile:
-            #myfile.write(str(results1) + ' ' + str(results2) +  ' ' +  str(results3) + ' ' + str(results4) + ' ' +  str(results5) + ' ' + str(results6) + ' ' +  str(results7) + ' ' + str(results8) + ' ' +  str(results9) + ' ' + str(results10) +  '\n'     )
+        with open("kot_fgsm_untarg.txt", "a") as myfile:
+            myfile.write(str(results1) + ' ' + str(results2) +  ' ' +  str(results3) + ' ' + str(results4) + ' ' +  str(results5) + ' ' + str(results6) + ' ' +  str(results7) + ' ' + str(results8) + ' ' +  str(results9) + ' ' + str(results10) +  '\n'     )
+
 
 
         iteration += 1

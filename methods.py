@@ -6,55 +6,47 @@ from attack_cleverhans import *
 
 DEFAULT_BATCH_SIZE = 100
 
-# Get accuracy of predictions
-def get_accuracy(dataset, grndTruth, discriminator, num_classes=10):
-
-    # Get predicted probabilities
-    pred = discriminator.predict(dataset)
-
-    # Add up real and designated probabilitites
-    for jj in range(num_classes):
-        pred[:,jj] += pred[:,jj+num_classes]
-
-    # Keep only the above addition result
-    pred = pred[:, 0:num_classes]
-
-    pred = np.argmax(pred, axis=1)
-    pred = np.reshape(pred, (pred.shape[0], 1))
-
-    grndTruth = grndTruth.astype(int)
-    correct = np.count_nonzero(pred==grndTruth)
-    print('CORRECT',correct)
-    acc =  correct*1.0/pred.shape[0]
-    print('Curr accuracy', acc)
-
-    return acc
+## Get accuracy of predictions
+#def get_accuracy(dataset, grndTruth, discriminator, num_classes=10):
+#
+#    # Get predicted probabilities
+#    pred = discriminator.predict(dataset)
+#
+#    # Add up real and designated probabilitites
+#    for jj in range(num_classes):
+#        pred[:,jj] += pred[:,jj+num_classes]
+#
+#    # Keep only the above addition result
+#    pred = pred[:, 0:num_classes]
+#
+#    pred = np.argmax(pred, axis=1)
+#    pred = np.reshape(pred, (pred.shape[0], 1))
+#
+#    grndTruth = grndTruth.astype(int)
+#    correct = np.count_nonzero(pred==grndTruth)
+#    print('CORRECT',correct)
+#    acc =  correct*1.0/pred.shape[0]
+#    print('Curr accuracy', acc)
+#
+#    return acc
 
 
 def get_targeted_ys(ys):
     
     dict_lbls = {}
-    dict_lbls[0] = [  1,2,3,4,5,6,7,8,9]
-    dict_lbls[1] = [0,  2,3,4,5,6,7,8,9]
-    dict_lbls[2] = [0,1,  3,4,5,6,7,8,9]
-    dict_lbls[3] = [0,1,2,  4,5,6,7,8,9]
-    dict_lbls[4] = [0,1,2,3,  5,6,7,8,9]
-    dict_lbls[5] = [0,1,2,3,4,  6,7,8,9]
-    dict_lbls[6] = [0,1,2,3,4,5,  7,8,9]
-    dict_lbls[7] = [0,1,2,3,4,5,6,  8,9]
-    dict_lbls[8] = [0,1,2,3,4,5,6,7,  9]
-    dict_lbls[9] = [0,1,2,3,4,5,6,7,8  ]
+
+    LABEL_COUNT = 1000
+    for ii in range(LABEL_COUNT):
+        dict_lbls[ii] = list(range(LABEL_COUNT))
+        dict_lbls[ii].remove(ii)
 
     targeted_ys = np.zeros_like(ys)
     for ii in range(ys.shape[0]):
         # Choose randomly among the other labels
-        #print(ys[ii])
-        ch = dict_lbls[ys[ii][0]]
-        #print(ch)
+        ch = dict_lbls[ys[ii]]
         targeted_ys[ii] = np.random.choice(ch,1)
 
     return targeted_ys
-
 
 # dataset is needed only by PGD attack
 # fgsm_epsilon is only for FGSM attack
